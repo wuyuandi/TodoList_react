@@ -1,79 +1,66 @@
-import React, { Component, Fragment } from 'react';
-import './style.css';
-import TodoItem from './TodoItem.js';
+import React, { Component } from 'react';
+//import axios from 'axios';
+import 'antd/dist/antd.css';
+import store from './store/index.js';
+import { getInputChangeAction, getAddItemAction, getDeleteItemAction, getInitList } from './store/actionCreators';
+import TodoListUI from './TodoListUI';
+//import { List } from 'antd';
+
 
 class TodoList extends Component{
 	constructor(props) {
 		super(props);
+		this.state = store.getState();
 		this.handleInputChange = this.handleInputChange.bind(this);
-		this.handlekeyUp = this.handlekeyUp.bind(this);
-		this.handleItemClick = this.handleItemClick.bind(this);
+		this.handleItemDelete = this.handleItemDelete.bind(this);
+		this.handleBtnClick = this.handleBtnClick.bind(this);
+		this.handleStoreChange = this.handleStoreChange.bind(this);
 
-
-		this.state = {
-			inputValue: '',
-			list: []
-		}
-	}
-	handleInputChange(e) {
-		this.setState({
-			inputValue: e.target.value
-		})
+		store.subscribe(this.handleStoreChange);
+		
 	}
 
-	handlekeyUp(e) {
-		//console.log(e.keyCode);
-		if (e.keyCode === 13 && e.target.value !== '') {
-			const list = [...this.state.list, this.state.inputValue];
-			this.setState({
-				list: list,
-				inputValue: ''
-
-			})
-		}
-	}
-
-	handleItemClick (index) {
-		const list = [...this.state.list];
-		list.splice(index,1);
-		this.setState({
-			list: list
-		})
-		//alert(index);
-	}
-
-	getListItems() {
-		//父子组件的概念
-		//父组件通过属性的形式向子组件传递值
-		return 	this.state.list.map((value, index) => {
-			return( 
-				<TodoItem 
-					content={value} 
-					key={index}
-					index={index}
-					deleteFunction={this.handleItemClick}
-				/>
-			)
-		})
-	}
 	render() {
 		return (
-			<Fragment>
-				<label htmlFor='myinput'> Please input: </label>
-				<input 
-					id= 'myinput'
-					className = 'input'
-					value = {this.state.inputValue}
-					onChange = {this.handleInputChange}
-					onKeyUp = {this.handlekeyUp}
-				/>
-				<ul>
-				{this.getListItems()}
-				</ul>
-				
+			
+			<TodoListUI 
+			inputValue={this.state.inputValue}
+			list={this.state.list}
+			handleInputChange={this.handleInputChange}
+			handleBtnClick={this.handleBtnClick}
+			handleItemDelete={this.handleItemDelete}
 
-			</Fragment>
-		);
+			/>
+
+		)
+	}
+	handleInputChange(e) {
+		const action = getInputChangeAction(e.target.value);
+		store.dispatch(action);
+	}
+
+	handleItemDelete(index) {
+		
+		const action = getDeleteItemAction(index);
+		store.dispatch(action);
+	}
+
+	//get new data from store and set it down
+	handleStoreChange() {
+		this.setState(store.getState()); 
+		
+	}
+	handleBtnClick() {
+		const action = getAddItemAction();
+		store.dispatch(action);
+	}
+
+	componentDidMount() {
+		const action = getInitList();
+		//console.log(action);
+		store.dispatch(action);
+		
+		
 	}
 }
 
